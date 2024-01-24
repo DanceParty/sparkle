@@ -1,5 +1,4 @@
 import { BannerText, H2 } from "./components/typography";
-import { HomeButtonGroup } from "./components/home-button-group";
 import { Button } from "./components/button";
 import { Input } from "./components/input";
 
