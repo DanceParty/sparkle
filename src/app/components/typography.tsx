@@ -3,11 +3,13 @@ import clsx from "clsx";
 const fontSize = {
   h1: "text-4xl lg:text-5xl",
   h2: "text-3xl",
+  span: "text-lg",
 };
 
 const styles = {
   h1: "scroll-m-20 font-light tracking-tight",
   h2: "scroll-m-20 font-light tracking-tight",
+  span: "leading-7",
 };
 
 type TitleProps = {
@@ -37,4 +39,8 @@ export function H1(props: TitleProps) {
 
 export function H2(props: TitleProps) {
   return <Title {...props} size="h2" />;
+}
+
+export function Span(props: TitleProps) {
+  return <Title {...props} size="span" />;
 }
