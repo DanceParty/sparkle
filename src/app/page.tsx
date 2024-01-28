@@ -1,8 +1,10 @@
 import { BannerText, H2 } from "./components/typography";
 import { Button } from "./components/button";
 import { Input } from "./components/input";
+import { db } from "../lib/drizzle";
+import { player } from "@/lib/schema";
 
-export default function Home() {
+export default async function Home() {
   return (
     <main className="flex flex-col h-full justify-center items-center gap-8">
       <BannerText>Sparkle</BannerText>
