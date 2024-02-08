@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { BannerText, H2 } from "./components/typography";
 import { Input } from "./components/input";
 import { Button } from "./components/button";
+import { NewGame, insertGame } from "@/lib/drizzle";
 
 export default function Home() {
   async function handleGameForm(formData: FormData) {
@@ -16,9 +17,18 @@ export default function Home() {
       //       Cancel and return errors for UI if not valid
       redirect(`/game/${code}`);
     } else if (intent === "create-lobby") {
+      console.log("code", code);
       // TODO: Create the lobby
       //       Cancel and return errors for UI if not valid
-      redirect(`/game/${code}`);
+      const newGame: NewGame = { code: code, status: "setting up" };
+      try {
+        await insertGame(newGame);
+      } catch (e) {
+        console.log(e);
+        throw Error("Creating Game was not successful.");
+      } finally {
+        redirect(`/game/${code}`);
+      }
     }
   }
 
