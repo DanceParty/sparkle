@@ -1,24 +1,48 @@
 import { redirect } from "next/navigation";
 import { BannerText, H2 } from "./components/typography";
-import { Input } from "./components/input";
 import { Button } from "./components/button";
-import { NewGame, checkDuplicatedGame, insertGame } from "@/lib/drizzle";
+import {
+  NewGame,
+  checkDuplicatedGame,
+  getGame,
+  insertGame,
+} from "@/lib/drizzle";
 import { makeGameCode } from "./util/gameHelper";
-import { game } from "@/lib/schema";
+import { Modal } from "./components/modal";
+import { Input } from "./components/input";
 
-export default function Home() {
+type HomeProps = {
+  searchParams: Record<string, string> | null | undefined;
+};
+
+export default function Home({ searchParams }: HomeProps) {
+  const isModalOpen = !!searchParams?.modal;
+
   async function handleGameForm(formData: FormData) {
     "use server";
     const intent = String(formData.get("intent"));
+    const code = String(formData.get("game-code"));
 
-    if (intent === "join-lobby") {
+    if (intent === "join-lobby-one") {
+      // open modal to enter game code
+      redirect("/?modal=true");
+    } else if (intent === "join-lobby-two") {
       // TODO: Validate the lobby exists and status === "setting up"
       //       Cancel and return errors for UI if not valid
-      // redirect(`/game/${code}`);
-    } else if (intent === "create-lobby") {
-      // TODO: Create the lobby
-      //       Cancel and return errors for UI if not valid
 
+      if (!code) throw Error("Code is missing.");
+
+      try {
+        const game = await getGame(code);
+        if (game.length > 1) {
+          throw Error("this is conflict game code.");
+        }
+      } catch (e) {
+        throw Error("joining Game was not successful.");
+      } finally {
+        redirect(`/game/${code}`);
+      }
+    } else if (intent === "create-lobby") {
       // generate game code and validate status === "in progress" or "setting up" with same code
       let isGameCodeUnique = false;
       let gameCode = "";
@@ -50,13 +74,23 @@ export default function Home() {
         className="mt-6 flex flex-col items-center gap-6 md:mt-12"
       >
         <div className="flex flex-col gap-6 md:flex-row md:gap-8">
-          <Button type="submit" name="intent" value="join-lobby">
+          <Button type="submit" name="intent" value="join-lobby-one">
             Join a lobby
           </Button>
           <Button type="submit" name="intent" value="create-lobby">
             Create a lobby
           </Button>
         </div>
+        <Modal isOpen={isModalOpen} contentClass="flex flex-col gap-4">
+          <Input
+            type="text"
+            name="game-code"
+            placeholder="Enter a lobby code..."
+          />
+          <Button type="submit" name="intent" value="join-lobby-two">
+            Join a lobby
+          </Button>
+        </Modal>
       </form>
     </main>
   );

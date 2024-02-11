@@ -31,3 +31,14 @@ export const checkDuplicatedGame = async (gameCode: string) => {
       } = ${"in progress"} OR ${schema.game.status} = ${"setting up"})`
     );
 };
+
+export const getGame = async (gameCode: string) => {
+  return db
+    .select()
+    .from(schema.game)
+    .where(
+      sql`${schema.game.code} = ${gameCode} AND ${
+        schema.game.status
+      } = ${"setting up"}`
+    );
+};
