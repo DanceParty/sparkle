@@ -1,12 +1,7 @@
 import { redirect } from "next/navigation";
 import { BannerText, H2 } from "./components/typography";
 import { Button } from "./components/button";
-import {
-  NewGame,
-  checkDuplicatedGame,
-  getGame,
-  insertGame,
-} from "@/lib/drizzle";
+import { NewGame, checkDuplicatedGame, getGame, insertGame } from "./data/game";
 import { makeGameCode } from "./util/gameHelper";
 import { Modal } from "./components/modal";
 import { Input } from "./components/input";
@@ -27,15 +22,15 @@ export default function Home({ searchParams }: HomeProps) {
       // open modal to enter game code
       redirect("/?modal=true");
     } else if (intent === "join-lobby-two") {
-      // TODO: Validate the lobby exists and status === "setting up"
-      //       Cancel and return errors for UI if not valid
-
+      // Validate the lobby exists and status === "setting up"
       if (!code) throw Error("Code is missing.");
 
       try {
         const game = await getGame(code);
         if (game.length > 1) {
           throw Error("this is conflict game code.");
+        } else if (game.length === 0) {
+          throw Error("no game exist with the game code.");
         }
       } catch (e) {
         throw Error("joining Game was not successful.");

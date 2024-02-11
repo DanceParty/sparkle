@@ -17,10 +17,10 @@ export function Modal({
   containerClass,
   closeButtonClass,
 }: ModalProps) {
-  const overlay = clsx(
-    "fixed inset-0 z-10 p-8 bg-gray-600/80",
-    `${isOpen ? "block" : "hidden"}`
-  );
+  const overlay = clsx("fixed inset-0 z-10 p-8 bg-gray-600/80", {
+    block: isOpen,
+    hidden: !isOpen,
+  });
   const container = clsx(
     "relative w-full max-w-md mx-auto mt-8 ",
     containerClass
