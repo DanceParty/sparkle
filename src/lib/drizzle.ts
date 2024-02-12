@@ -6,5 +6,5 @@ if (!process.env.DATABASE_URL) {
   throw new Error("database url is undefined");
 }
 
-export const sql = postgres(process.env.DATABASE_URL);
-export const db = drizzle(sql, { schema });
+export const connection = postgres(process.env.DATABASE_URL);
+export const db = drizzle(connection, { schema });
