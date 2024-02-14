@@ -1,16 +1,68 @@
+import { Button } from "@/app/components/button";
+import { Input } from "@/app/components/input";
+import { Modal } from "@/app/components/modal";
 import { H1, Span } from "@/app/components/typography";
+import { getGame, getPlayersForGame } from "@/app/data/game";
+import { NewPlayer, insertPlayer } from "@/app/data/player";
+import { insertScore } from "@/app/data/score";
+import { redirect } from "next/navigation";
 
-export default function GamePage({ params }: { params: { id: string } }) {
+type GameProps = {
+  params: { id: string };
+  searchParams: Record<string, string> | null | undefined;
+};
+export default async function GamePage({ params, searchParams }: GameProps) {
+  const [game] = await getGame(params.id);
+  const isCreatePlayerModalOpen = !!searchParams?.createPlayerModal;
+  const joinedPlayers = await getPlayersForGame(game.id);
+  async function handlePlayerForm(formData: FormData) {
+    "use server";
+    const playerName = String(formData.get("player-name"));
+    let newPlayer: NewPlayer;
+    try {
+      const players = await getPlayersForGame(game.id);
+      if (players.length === 0) {
+        newPlayer = {
+          username: playerName,
+          turnOrderIndex: 0,
+          gameId: game.id,
+          role: "OWNER",
+        };
+      } else {
+        newPlayer = {
+          username: playerName,
+          turnOrderIndex: players.length,
+          gameId: game.id,
+          role: "PLAYER",
+        };
+      }
+      [newPlayer] = await insertPlayer(newPlayer);
+      await insertScore({ gameId: game.id, playerId: newPlayer.id });
+    } catch (e) {
+      console.log(e);
+    } finally {
+      redirect(`/game/${game.code}`);
+    }
+  }
+
   return (
     <main className="flex h-full flex-row-reverse">
       <aside className="sticky flex h-full flex-col justify-between border border-black p-4">
         <div>
-          <ul>
-            <li className="border border-black px-4 py-4">Player 1</li>
-            <li className="border border-black px-4 py-4">Player 2</li>
-            <li className="border border-black px-4 py-4">Player 3</li>
-            <li className="border border-black px-4 py-4">Player 4</li>
-          </ul>
+          {joinedPlayers.length === 0 ? (
+            <span>No player in this game yet</span>
+          ) : (
+            <ul>
+              {joinedPlayers.map((playerInfo) => (
+                <li
+                  className="border border-black px-4 py-4"
+                  key={playerInfo.player.id}
+                >
+                  {playerInfo.player.username}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="flex flex-col gap-4">
           <div>
@@ -63,6 +115,19 @@ export default function GamePage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+      <Modal
+        isOpen={isCreatePlayerModalOpen}
+        redirectRoute={`/game/${params.id}`}
+      >
+        <form action={handlePlayerForm} className="flex flex-col gap-4">
+          <Input
+            type="text"
+            name="player-name"
+            placeholder="Enter a player name..."
+          />
+          <Button type="submit">Create a Player</Button>
+        </form>
+      </Modal>
     </main>
   );
 }

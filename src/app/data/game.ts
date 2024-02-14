@@ -1,5 +1,5 @@
-import { game } from "../../lib/schema";
-import { sql } from "drizzle-orm";
+import { game, player } from "../../lib/schema";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/drizzle";
 
 export type NewGame = typeof game.$inferInsert;
@@ -24,4 +24,12 @@ export const getGame = async (gameCode: string) => {
     .where(
       sql`${game.code} = ${gameCode} AND ${game.status} = ${"setting up"}`
     );
+};
+
+export const getPlayersForGame = async (gameId: string) => {
+  return db
+    .select()
+    .from(game)
+    .rightJoin(player, eq(game.id, player.gameId))
+    .where(sql`${game.id} = ${gameId}`);
 };

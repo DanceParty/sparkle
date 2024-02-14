@@ -34,7 +34,7 @@ export const playerRelations = relations(player, ({ one, many }) => ({
 
 export const game = pgTable("game", {
   id: uuid("id").primaryKey().defaultRandom(),
-  code: varchar("code", { length: 20 }),
+  code: varchar("code", { length: 20 }).notNull(),
   status: gameStatusEnum("status"),
 });
 
