@@ -8,9 +8,11 @@ interface ModalProps {
   contentClass?: string;
   containerClass?: string;
   closeButtonClass?: string;
+  redirectRoute: string;
 }
 
 export function Modal({
+  redirectRoute,
   children,
   isOpen,
   contentClass,
@@ -36,7 +38,7 @@ export function Modal({
   return (
     <div className={overlay}>
       <div className={container}>
-        <Link className={closeButton} href="/">
+        <Link className={closeButton} href={redirectRoute}>
           <span className="text-xl leading-6 select-none text-white">
             &times;
           </span>

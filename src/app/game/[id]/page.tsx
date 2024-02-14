@@ -1,6 +1,50 @@
+import { Button } from "@/app/components/button";
+import { Input } from "@/app/components/input";
+import { Modal } from "@/app/components/modal";
 import { H1, Span } from "@/app/components/typography";
+import { getGame, getPlayersForGame } from "@/app/data/game";
+import { NewPlayer, insertPlayer } from "@/app/data/player";
+import { insertScore } from "@/app/data/score";
+import { redirect } from "next/navigation";
 
-export default function GamePage({ params }: { params: { id: string } }) {
+type GameProps = {
+  params: { id: string };
+  searchParams: Record<string, string> | null | undefined;
+};
+export default async function GamePage({ params, searchParams }: GameProps) {
+  const [game] = await getGame(params.id);
+  const isCreatePlayerModalOpen = !!searchParams?.createPlayerModal;
+  // TODO: get players list and render
+  async function handlePlayerForm(formData: FormData) {
+    "use server";
+    const playerName = String(formData.get("player-name"));
+    let newPlayer: NewPlayer;
+    try {
+      const players = await getPlayersForGame(game.id);
+      if (players.length === 0) {
+        newPlayer = {
+          username: playerName,
+          turnOrderIndex: 0,
+          gameId: game.id,
+          role: "OWNER",
+        };
+      } else {
+        newPlayer = {
+          username: playerName,
+          turnOrderIndex: players.length,
+          gameId: game.id,
+          role: "PLAYER",
+        };
+      }
+      [newPlayer] = await insertPlayer(newPlayer);
+      await insertScore({ gameId: game.id, playerId: newPlayer.id });
+    } catch (e) {
+      console.log(e);
+    } finally {
+      redirect(`/game/${game.code}`);
+    }
+  }
+
   return (
     <main className="flex h-full flex-row-reverse">
       <aside className="sticky flex h-full flex-col justify-between border border-black p-4">
@@ -63,6 +107,19 @@ export default function GamePage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+      <Modal
+        isOpen={isCreatePlayerModalOpen}
+        redirectRoute={`/game/${params.id}`}
+      >
+        <form action={handlePlayerForm} className="flex flex-col gap-4">
+          <Input
+            type="text"
+            name="player-name"
+            placeholder="Enter a player name..."
+          />
+          <Button type="submit">Create a Player</Button>
+        </form>
+      </Modal>
     </main>
   );
 }

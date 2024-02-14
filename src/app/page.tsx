@@ -35,7 +35,7 @@ export default function Home({ searchParams }: HomeProps) {
       } catch (e) {
         throw Error("joining Game was not successful.");
       } finally {
-        redirect(`/game/${code}`);
+        redirect(`/game/${code}/?createPlayerModal=true`);
       }
     } else if (intent === "create-lobby") {
       // generate game code and validate status === "in progress" or "setting up" with same code
@@ -55,7 +55,7 @@ export default function Home({ searchParams }: HomeProps) {
       } catch (e) {
         throw Error("Creating Game was not successful.");
       } finally {
-        redirect(`/game/${gameCode}`);
+        redirect(`/game/${gameCode}/?createPlayerModal=true`);
       }
     }
   }
@@ -76,7 +76,11 @@ export default function Home({ searchParams }: HomeProps) {
             Create a lobby
           </Button>
         </div>
-        <Modal isOpen={isModalOpen} contentClass="flex flex-col gap-4">
+        <Modal
+          isOpen={isModalOpen}
+          contentClass="flex flex-col gap-4"
+          redirectRoute="/"
+        >
           <Input
             type="text"
             name="game-code"
