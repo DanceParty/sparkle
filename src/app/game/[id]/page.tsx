@@ -14,7 +14,7 @@ type GameProps = {
 export default async function GamePage({ params, searchParams }: GameProps) {
   const [game] = await getGame(params.id);
   const isCreatePlayerModalOpen = !!searchParams?.createPlayerModal;
-  // TODO: get players list and render
+  const joinedPlayers = await getPlayersForGame(game.id);
   async function handlePlayerForm(formData: FormData) {
     "use server";
     const playerName = String(formData.get("player-name"));
@@ -49,12 +49,20 @@ export default async function GamePage({ params, searchParams }: GameProps) {
     <main className="flex h-full flex-row-reverse">
       <aside className="sticky flex h-full flex-col justify-between border border-black p-4">
         <div>
-          <ul>
-            <li className="border border-black px-4 py-4">Player 1</li>
-            <li className="border border-black px-4 py-4">Player 2</li>
-            <li className="border border-black px-4 py-4">Player 3</li>
-            <li className="border border-black px-4 py-4">Player 4</li>
-          </ul>
+          {joinedPlayers.length === 0 ? (
+            <span>No player in this game yet</span>
+          ) : (
+            <ul>
+              {joinedPlayers.map((playerInfo) => (
+                <li
+                  className="border border-black px-4 py-4"
+                  key={playerInfo.player.id}
+                >
+                  {playerInfo.player.username}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="flex flex-col gap-4">
           <div>
