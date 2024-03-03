@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { BannerText, H2 } from "./components/typography";
 import { Button } from "./components/button";
 import { NewGame, checkDuplicatedGame, getGame, insertGame } from "./data/game";
-import { makeGameCode } from "./util/gameHelper";
+import { makeGameCode } from "./game/util/gameHelper";
 import { Modal } from "./components/modal";
 import { Input } from "./components/input";
 

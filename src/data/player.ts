@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
-import { player } from "../../lib/schema";
-import { db } from "@/lib/drizzle";
+import { player } from "../lib/schema";
+import { db } from "@/oldapp/lib/drizzle";
 
 export type NewPlayer = typeof player.$inferInsert;
 export const insertPlayer = async (newPlayer: NewPlayer) => {

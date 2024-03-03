@@ -1,6 +1,6 @@
-import { game, player } from "../../lib/schema";
+import { game, player } from "../lib/schema";
 import { eq, sql } from "drizzle-orm";
-import { db } from "@/lib/drizzle";
+import { db } from "@/oldapp/lib/drizzle";
 
 export type NewGame = typeof game.$inferInsert;
 export const insertGame = async (newGame: NewGame) => {
@@ -24,6 +24,10 @@ export const getGame = async (gameCode: string) => {
     .where(
       sql`${game.code} = ${gameCode} AND ${game.status} = ${"setting up"}`
     );
+};
+
+export const getAllGame = async () => {
+  return db.select().from(game);
 };
 
 export const getPlayersForGame = async (gameId: string) => {

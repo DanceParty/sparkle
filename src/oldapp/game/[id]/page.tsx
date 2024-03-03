@@ -1,10 +1,10 @@
-import { Button } from "@/app/components/button";
-import { Input } from "@/app/components/input";
-import { Modal } from "@/app/components/modal";
-import { H1, Span } from "@/app/components/typography";
-import { getGame, getPlayersForGame } from "@/app/data/game";
-import { NewPlayer, insertPlayer } from "@/app/data/player";
-import { insertScore } from "@/app/data/score";
+import { Button } from "@/oldapp/components/button";
+import { Input } from "@/oldapp/components/input";
+import { Modal } from "@/oldapp/components/modal";
+import { H1, Span } from "@/oldapp/components/typography";
+import { getGame, getPlayersForGame } from "@/oldapp/data/game";
+import { NewPlayer, insertPlayer } from "@/oldapp/data/player";
+import { insertScore } from "@/oldapp/data/score";
 import { redirect } from "next/navigation";
 
 type GameProps = {
