@@ -6,28 +6,29 @@ import { getGame, getPlayersForGame } from "@/data/game";
 import { NewPlayer } from "@/data/player";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
+import { stringify } from "querystring";
 import { FormEvent } from "react";
 
 type GameProps = {
   players: {
     player: {
-      role: "OWNER" | "PLAYER" | null;
+      role: "OWNER" | "PLAYER";
       id: string;
-      username: string | null;
-      turnOrderIndex: number | null;
-      gameId: string | null;
+      username: string;
+      turnOrderIndex: number;
+      gameId: string;
     };
     game: {
       code: string;
-      status: "in progress" | "setting up" | "finished" | null;
+      status: "in progress" | "setting up" | "finished";
       id: string;
-    } | null;
+    };
   }[];
   game: {
     code: string;
-    status: "in progress" | "setting up" | "finished" | null;
+    status: "in progress" | "setting up" | "finished";
     id: string;
-  } | null;
+  };
 };
 export default function GamePage({
   players,
@@ -35,36 +36,39 @@ export default function GamePage({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
   const isCreatePlayerModalOpen = !!router.query.createPlayerModal;
-  const gameCode = game?.code;
+  const gameId = game?.id;
   async function handleCreatePlayer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
     const playerName = String(formData.get("player-name"));
 
-    let newPlayer: NewPlayer;
+    let newPlayer: NewPlayer = {};
     if (players && playerName) {
       if (players.length === 0) {
         newPlayer = {
           username: playerName,
           turnOrderIndex: 0,
-          gameId: gameCode,
+          gameId: gameId,
           role: "OWNER",
         };
       } else {
         newPlayer = {
           username: playerName,
           turnOrderIndex: players.length,
-          gameId: gameCode,
+          gameId: gameId,
           role: "PLAYER",
         };
       }
     }
 
-    const response = await fetch("/api/insertPlayer", {
+    const response = await fetch("/api/insertPlayerScore", {
       method: "POST",
-      body: formData,
+      body: JSON.stringify(newPlayer),
     });
+    if (response.ok) {
+      router.push(`/game/${game?.code}`);
+    }
   }
   return (
     <main className="flex h-full flex-row-reverse">
@@ -130,7 +134,7 @@ export default function GamePage({
       </div>
       <Modal
         isOpen={isCreatePlayerModalOpen}
-        redirectRoute={`/game/${gameCode}`}
+        redirectRoute={`/game/${game?.code}`}
       >
         <form onSubmit={handleCreatePlayer} className="flex flex-col gap-4">
           <Input
