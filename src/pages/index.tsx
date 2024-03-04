@@ -12,7 +12,10 @@ export default function Home() {
     const response = await fetch("api/createLobby", {
       method: "POST",
     });
-    if (response.ok) {
+
+    if (!response.ok) {
+      throw Error("Creating Game was not successful.");
+    } else if (response.ok) {
       const { gameCode } = await response.json();
       router.push(`/game/${gameCode}/?createPlayerModal=true`);
     }
@@ -23,16 +26,16 @@ export default function Home() {
     const formData = new FormData(event.currentTarget);
     const gameCode = String(formData.get("game-code"));
 
-    if (!gameCode) {
-      // TODO: need to show error
-    } else {
-      const response = await fetch("/api/enterLobby", {
-        method: "POST",
-        body: JSON.stringify(gameCode),
-      });
-      if (response.ok) {
-        router.push(`/game/${gameCode}/?createPlayerModal=true`);
-      }
+    if (!gameCode) throw Error("Code is missing.");
+
+    const response = await fetch("/api/enterLobby", {
+      method: "POST",
+      body: JSON.stringify(gameCode),
+    });
+    if (!response.ok) {
+      throw Error("Joining Game was not successful.");
+    } else if (response.ok) {
+      router.push(`/game/${gameCode}/?createPlayerModal=true`);
     }
   }
 

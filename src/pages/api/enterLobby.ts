@@ -11,13 +11,12 @@ export default async function handler(
     const game = await getGame(data);
 
     if (game.length > 1) {
-      throw Error("this is conflict game code.");
+      throw Error("This is conflict game code.");
     } else if (game.length === 0) {
-      throw Error("no game exist with the game code.");
+      throw Error("No game exist with the game code.");
     }
-    console.log(data);
     res.status(200).json({ game });
   } catch (e) {
-    throw Error("joining Game was not successful.");
+    res.status(500).json({ message: "Joining Game was not successful." });
   }
 }

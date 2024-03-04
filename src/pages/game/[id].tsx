@@ -42,6 +42,8 @@ export default function GamePage({
     const formData = new FormData(event.currentTarget);
     const playerName = String(formData.get("player-name"));
 
+    if (!playerName) throw Error("Player name is missing.");
+
     let newPlayer: NewPlayer = {};
     if (players && playerName) {
       if (players.length === 0) {
@@ -65,7 +67,10 @@ export default function GamePage({
       method: "POST",
       body: JSON.stringify(newPlayer),
     });
-    if (response.ok) {
+
+    if (!response.ok) {
+      throw Error("Inserting player was not successful.");
+    } else if (response.ok) {
       router.push(`/game/${game?.code}`);
     }
   }
