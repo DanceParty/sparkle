@@ -1,6 +1,6 @@
 import { game, player } from "../lib/schema";
 import { eq, sql } from "drizzle-orm";
-import { db } from "@/oldapp/lib/drizzle";
+import { db } from "@/lib/drizzle";
 
 export type NewGame = typeof game.$inferInsert;
 export const insertGame = async (newGame: NewGame) => {

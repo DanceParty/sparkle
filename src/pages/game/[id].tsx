@@ -6,7 +6,6 @@ import { getGame, getPlayersForGame } from "@/data/game";
 import { NewPlayer } from "@/data/player";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
-import { stringify } from "querystring";
 import { FormEvent } from "react";
 
 type GameProps = {
@@ -74,12 +73,20 @@ export default function GamePage({
     <main className="flex h-full flex-row-reverse">
       <aside className="sticky flex h-full flex-col justify-between border border-black p-4">
         <div>
-          <ul>
-            <li className="border border-black px-4 py-4">Player 1</li>
-            <li className="border border-black px-4 py-4">Player 2</li>
-            <li className="border border-black px-4 py-4">Player 3</li>
-            <li className="border border-black px-4 py-4">Player 4</li>
-          </ul>
+          {players?.length === 0 ? (
+            <span>No player in this game yet</span>
+          ) : (
+            <ul>
+              {players?.map((playerInfo) => (
+                <li
+                  className="border border-black px-4 py-4"
+                  key={playerInfo.player.id}
+                >
+                  {playerInfo.player.username}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="flex flex-col gap-4">
           <div>
