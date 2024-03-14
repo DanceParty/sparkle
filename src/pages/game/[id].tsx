@@ -1,59 +1,88 @@
-import { Button } from "@/app/components/button";
-import { Input } from "@/app/components/input";
-import { Modal } from "@/app/components/modal";
-import { H1, Span } from "@/app/components/typography";
-import { getGame, getPlayersForGame } from "@/app/data/game";
-import { NewPlayer, insertPlayer } from "@/app/data/player";
-import { insertScore } from "@/app/data/score";
-import { redirect } from "next/navigation";
+import { Button } from "@/components/button";
+import { Input } from "@/components/input";
+import { Modal } from "@/components/modal";
+import { H1, Span } from "@/components/typography";
+import { getGame, getPlayersForGame } from "@/data/game";
+import { NewPlayer } from "@/data/player";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { useRouter } from "next/router";
+import { FormEvent } from "react";
 
 type GameProps = {
-  params: { id: string };
-  searchParams: Record<string, string> | null | undefined;
+  players: {
+    player: {
+      role: "OWNER" | "PLAYER";
+      id: string;
+      username: string;
+      turnOrderIndex: number;
+      gameId: string;
+    };
+    game: {
+      code: string;
+      status: "in progress" | "setting up" | "finished";
+      id: string;
+    };
+  }[];
+  game: {
+    code: string;
+    status: "in progress" | "setting up" | "finished";
+    id: string;
+  };
 };
-export default async function GamePage({ params, searchParams }: GameProps) {
-  const [game] = await getGame(params.id);
-  const isCreatePlayerModalOpen = !!searchParams?.createPlayerModal;
-  const joinedPlayers = await getPlayersForGame(game.id);
-  async function handlePlayerForm(formData: FormData) {
-    "use server";
+export default function GamePage({
+  players,
+  game,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const router = useRouter();
+  const isCreatePlayerModalOpen = !!router.query.createPlayerModal;
+  const gameId = game?.id;
+  async function handleCreatePlayer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
     const playerName = String(formData.get("player-name"));
-    let newPlayer: NewPlayer;
-    try {
-      const players = await getPlayersForGame(game.id);
+
+    if (!playerName) throw Error("Player name is missing.");
+
+    let newPlayer: NewPlayer = {};
+    if (players && playerName) {
       if (players.length === 0) {
         newPlayer = {
           username: playerName,
           turnOrderIndex: 0,
-          gameId: game.id,
+          gameId: gameId,
           role: "OWNER",
         };
       } else {
         newPlayer = {
           username: playerName,
           turnOrderIndex: players.length,
-          gameId: game.id,
+          gameId: gameId,
           role: "PLAYER",
         };
       }
-      [newPlayer] = await insertPlayer(newPlayer);
-      await insertScore({ gameId: game.id, playerId: newPlayer.id });
-    } catch (e) {
-      console.log(e);
-    } finally {
-      redirect(`/game/${game.code}`);
+    }
+
+    const response = await fetch("/api/insertPlayerScore", {
+      method: "POST",
+      body: JSON.stringify(newPlayer),
+    });
+
+    if (!response.ok) {
+      throw Error("Inserting player was not successful.");
+    } else if (response.ok) {
+      router.push(`/game/${game?.code}`);
     }
   }
-
   return (
     <main className="flex h-full flex-row-reverse">
       <aside className="sticky flex h-full flex-col justify-between border border-black p-4">
         <div>
-          {joinedPlayers.length === 0 ? (
+          {players?.length === 0 ? (
             <span>No player in this game yet</span>
           ) : (
             <ul>
-              {joinedPlayers.map((playerInfo) => (
+              {players?.map((playerInfo) => (
                 <li
                   className="border border-black px-4 py-4"
                   key={playerInfo.player.id}
@@ -117,9 +146,9 @@ export default async function GamePage({ params, searchParams }: GameProps) {
       </div>
       <Modal
         isOpen={isCreatePlayerModalOpen}
-        redirectRoute={`/game/${params.id}`}
+        redirectRoute={`/game/${game?.code}`}
       >
-        <form action={handlePlayerForm} className="flex flex-col gap-4">
+        <form onSubmit={handleCreatePlayer} className="flex flex-col gap-4">
           <Input
             type="text"
             name="player-name"
@@ -131,3 +160,12 @@ export default async function GamePage({ params, searchParams }: GameProps) {
     </main>
   );
 }
+
+export const getServerSideProps = (async ({ params }) => {
+  if (params && typeof params.id === "string") {
+    const [game] = await getGame(params.id);
+    const joinedPlayers = await getPlayersForGame(game.id);
+    return { props: { players: joinedPlayers, game } };
+  }
+  return { props: {} };
+}) satisfies GetServerSideProps<{ players: GameProps } | {}>;

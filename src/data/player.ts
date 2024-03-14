@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { player } from "../../lib/schema";
+import { player } from "../lib/schema";
 import { db } from "@/lib/drizzle";
 
 export type NewPlayer = typeof player.$inferInsert;

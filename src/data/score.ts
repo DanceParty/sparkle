@@ -1,4 +1,4 @@
-import { score } from "../../lib/schema";
+import { score } from "../lib/schema";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/drizzle";
 
