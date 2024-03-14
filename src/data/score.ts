@@ -1,6 +1,6 @@
 import { score } from "../lib/schema";
 import { sql } from "drizzle-orm";
-import { db } from "@/oldapp/lib/drizzle";
+import { db } from "@/lib/drizzle";
 
 export type NewScore = typeof score.$inferInsert;
 export const insertScore = async (newScore: NewScore) => {
