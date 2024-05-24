@@ -36,7 +36,7 @@ export function Chat({ playerName }: ChatProps) {
     <div>
       {status ? <span>connected</span> : <span>disconnected</span>}
       {messages.map((message, index) => (
-        <p key={index}>{`username ) ${message.content}`}</p>
+        <p key={index}>{`${message.username} ) ${message.content}`}</p>
       ))}
       <Input
         className="w-full border border-black px-4 py-1"

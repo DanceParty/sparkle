@@ -35,6 +35,7 @@ export default function GamePage({
   players,
   me,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  console.log(me);
   return (
     <main className="flex h-full flex-row-reverse">
       <SocketProvider>
@@ -104,7 +105,7 @@ export default function GamePage({
 
 export const getServerSideProps = (async (ctx: GetServerSidePropsContext) => {
   const session = await getSession(ctx);
-  console.log("this is it", session);
+
   if (session) {
     const joinedPlayers = await getPlayersForGame(session.gameId);
     return {
@@ -119,6 +120,12 @@ export const getServerSideProps = (async (ctx: GetServerSidePropsContext) => {
         },
       },
     };
+  } else {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
   }
-  return { props: {} };
 }) satisfies GetServerSideProps<{ players: GameProps; me: NewPlayer } | {}>;
