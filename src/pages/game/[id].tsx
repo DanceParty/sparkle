@@ -1,15 +1,15 @@
-import { Button } from "@/components/button";
 import { Chat } from "@/components/chat";
-import { Input } from "@/components/input";
-import { Modal } from "@/components/modal";
 import { SocketProvider } from "@/components/provider/SocketProvider";
 import { H1, Span } from "@/components/typography";
-import { getGame, getPlayersForGame } from "@/data/game";
+import { getPlayersForGame } from "@/data/game";
 import { NewPlayer } from "@/data/player";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { useRouter } from "next/router";
-import { FormEvent } from "react";
 
+import { getSession } from "@/lib/session";
+import {
+  GetServerSideProps,
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from "next";
 type GameProps = {
   players: {
     player: {
@@ -33,50 +33,8 @@ type GameProps = {
 };
 export default function GamePage({
   players,
-  game,
+  me,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const router = useRouter();
-  const isCreatePlayerModalOpen = !!router.query.createPlayerModal;
-  const gameId = game?.id;
-
-  async function handleCreatePlayer(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const formData = new FormData(event.currentTarget);
-    const playerName = String(formData.get("player-name"));
-
-    if (!playerName) throw Error("Player name is missing.");
-
-    let newPlayer: NewPlayer = {};
-    if (players && playerName) {
-      if (players.length === 0) {
-        newPlayer = {
-          username: playerName,
-          turnOrderIndex: 0,
-          gameId: gameId,
-          role: "OWNER",
-        };
-      } else {
-        newPlayer = {
-          username: playerName,
-          turnOrderIndex: players.length,
-          gameId: gameId,
-          role: "PLAYER",
-        };
-      }
-    }
-
-    const response = await fetch("/api/insertPlayerScore", {
-      method: "POST",
-      body: JSON.stringify(newPlayer),
-    });
-
-    if (!response.ok) {
-      throw Error("Inserting player was not successful.");
-    } else if (response.ok) {
-      router.push(`/game/${game?.code}`);
-    }
-  }
   return (
     <main className="flex h-full flex-row-reverse">
       <SocketProvider>
@@ -98,7 +56,7 @@ export default function GamePage({
             )}
           </div>
           <div className="flex flex-col gap-4">
-            <Chat />
+            <Chat playerName={me?.username} />
           </div>
         </aside>
         <div className="flex w-full flex-col items-center justify-between py-12">
@@ -139,29 +97,28 @@ export default function GamePage({
             </div>
           </div>
         </div>
-        <Modal
-          isOpen={isCreatePlayerModalOpen}
-          redirectRoute={`/game/${game?.code}`}
-        >
-          <form onSubmit={handleCreatePlayer} className="flex flex-col gap-4">
-            <Input
-              type="text"
-              name="player-name"
-              placeholder="Enter a player name..."
-            />
-            <Button type="submit">Create a Player</Button>
-          </form>
-        </Modal>
       </SocketProvider>
     </main>
   );
 }
 
-export const getServerSideProps = (async ({ params }) => {
-  if (params && typeof params.id === "string") {
-    const [game] = await getGame(params.id);
-    const joinedPlayers = await getPlayersForGame(game.id);
-    return { props: { players: joinedPlayers, game } };
+export const getServerSideProps = (async (ctx: GetServerSidePropsContext) => {
+  const session = await getSession(ctx);
+  console.log("this is it", session);
+  if (session) {
+    const joinedPlayers = await getPlayersForGame(session.gameId);
+    return {
+      props: {
+        players: joinedPlayers,
+        me: {
+          id: session.id,
+          username: session.username,
+          role: session.role,
+          turnOrderIndex: session.turnOrderIndex,
+          gameId: session.gameId,
+        },
+      },
+    };
   }
   return { props: {} };
-}) satisfies GetServerSideProps<{ players: GameProps } | {}>;
+}) satisfies GetServerSideProps<{ players: GameProps; me: NewPlayer } | {}>;
