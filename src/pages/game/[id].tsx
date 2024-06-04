@@ -35,7 +35,6 @@ export default function GamePage({
   players,
   me,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  console.log(me);
   return (
     <main className="flex h-full flex-row-reverse">
       <SocketProvider>
